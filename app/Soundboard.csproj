@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>Soundboard</AssemblyName>
+    <RootNamespace>Soundboard</RootNamespace>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <Version>1.0.0</Version>
+    <Product>Soundboard</Product>
+    <Description>Soundboard - play sounds straight into your microphone</Description>
+    <ApplicationIcon>Soundboard.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Soundboard.Tests" />
+  </ItemGroup>
+
+  <!-- The microphone module is embedded so the exe can install / repair it on its own. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\bin\SoundboardApo.dll" LogicalName="SoundboardApo.dll" />
+    <EmbeddedResource Include="Soundboard.ico" LogicalName="Soundboard.ico" />
+    <None Remove="Soundboard-256.png" />
+  </ItemGroup>
+
+</Project>

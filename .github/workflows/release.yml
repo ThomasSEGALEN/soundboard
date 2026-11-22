@@ -1,0 +1,45 @@
+name: Release
+
+# Push a tag such as v1.0.0 to build Soundboard and publish a GitHub release.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Build APO
+        shell: pwsh
+        run: ./scripts/build.ps1
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          dotnet run --project tests/Soundboard.Tests.csproj -c Release --nologo
+          exit $LASTEXITCODE
+
+      - name: Package
+        shell: pwsh
+        run: ./scripts/deploy.ps1 -NoInstall -Version $env:GITHUB_REF_NAME.TrimStart('v')
+
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          gh release create $env:GITHUB_REF_NAME `
+            dist/Soundboard-Setup.exe "dist/Soundboard-$version.zip" `
+            --title "Soundboard $version" `
+            --notes-file packaging/release-notes.md `
+            --generate-notes

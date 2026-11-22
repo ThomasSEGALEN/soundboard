@@ -1,0 +1,60 @@
+﻿Soundboard - des sons directement dans ton micro
+================================================
+
+Joue des sons dans ton micro : Discord, chats vocaux de jeux, OBS...
+Sans câble virtuel, sans changer de périphérique.
+
+Prérequis : Windows 11 (ou Windows 10 récent), 64 bits.
+
+
+AVANT D'INSTALLER : Smart App Control
+-------------------------------------
+Soundboard n'est pas signé (un certificat de signature coûte cher).
+Si "Smart App Control" (Contrôle intelligent des applications) est activé,
+Windows bloquera Soundboard sans rien afficher.
+
+Pour vérifier / désactiver :
+  Sécurité Windows > Contrôle des applications et du navigateur
+  > Paramètres du contrôle intelligent des applications > Désactivé
+
+Microsoft Defender (l'antivirus) reste actif.
+
+
+INSTALLER
+---------
+1. Lance Soundboard-Setup.exe.
+   Si Windows affiche "Windows a protégé votre ordinateur" :
+   clique sur "Informations complémentaires" puis "Exécuter quand même".
+2. Réponds "Oui" pour installer. Un raccourci Soundboard (note de musique)
+   apparaît sur le Bureau et dans le menu Démarrer.
+3. Au premier lancement, coche le micro que tu utilises et clique "Appliquer".
+   Windows demande une autorisation administrateur : c'est normal,
+   le son se coupe 2 secondes.
+
+Le voyant en bas de la fenêtre :
+  vert   = connecté, les autres entendent tes sons
+  orange = aucune application n'utilise le micro pour l'instant
+  rouge  = module absent (après une mise à jour du pilote) : clique dessus > Réparer
+
+
+UTILISER
+--------
+- Ajouter : bouton "Ajouter" (fichiers, dossier, pack), glisser-déposer ou Ctrl+V.
+- Clic = jouer, clic du milieu = stop, clic droit = volume, raccourci, couleur...
+- Dans Discord : Paramètres > Voix et vidéo > Suppression de bruit = "Aucune"
+  (Soundboard a son propre anti-bruit qui ne filtre jamais les sons).
+- Partager tes sons : dans Soundboard, Paramètres > Sauvegarde > Exporter l'onglet affiché (fichier .soundboard).
+  Pour importer celui d'un ami : Ajouter > Pack...
+
+
+ANTI-TRICHE
+-----------
+Soundboard ne touche à aucun jeu (pas d'injection, pas de lecture mémoire,
+pas de pilote noyau). C'est un effet audio de Windows sur ton micro,
+comme Realtek, Nahimic ou NVIDIA Broadcast.
+
+
+DÉSINSTALLER
+------------
+Paramètres Windows > Applications > Applications installées > Soundboard > Désinstaller.
+Ton micro retrouve ses réglages d'origine.

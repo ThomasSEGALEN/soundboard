@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+obj-apo/
+dist/
+publish/
+
+# MSVC by-products
+*.exp
+*.lib
+*.pdb
+*.ilk
+*.obj
+
+# IDE / OS
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+Thumbs.db
+desktop.ini
+
+# Local tooling
+.claude/
