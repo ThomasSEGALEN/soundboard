@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -10,7 +10,7 @@
     <AssemblyName>Soundboard</AssemblyName>
     <RootNamespace>Soundboard</RootNamespace>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Product>Soundboard</Product>
     <Description>Soundboard - play sounds straight into your microphone</Description>
     <ApplicationIcon>Soundboard.ico</ApplicationIcon>

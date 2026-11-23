@@ -67,10 +67,17 @@ static class MicSetup
     }
 
     /// <summary>Microphones the module was installed on before (they have a backup): what "Repair" reinstalls.</summary>
-    public static List<string> PreviouslyInstalled() =>
-        Directory.Exists(BackupDir)
-            ? Directory.GetFiles(BackupDir, "*.json").Select(Path.GetFileNameWithoutExtension).OfType<string>().ToList()
-            : new List<string>();
+    /// Also counts the backups of the SoundMix days and microphones that carry the module without a backup.
+    public static List<string> PreviouslyInstalled()
+    {
+        var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var dir in new[] { BackupDir, Path.Combine(Legacy.OldProgramData, "backup") })
+            if (Directory.Exists(dir))
+                foreach (var f in Directory.GetFiles(dir, "*.json"))
+                    if (Path.GetFileNameWithoutExtension(f) is { Length: > 0 } id) ids.Add(id);
+        try { foreach (var m in ListMicrophones().Where(m => m.Installed)) ids.Add(m.Id); } catch { }
+        return ids.ToList();
+    }
 
     // ------------------------------------------------------------ elevation
 
@@ -197,7 +204,13 @@ static class MicSetup
             foreach (var id in ids)
             {
                 string file = Path.Combine(BackupDir, id + ".json");
-                if (!File.Exists(file)) continue;
+                if (!File.Exists(file))
+                {
+                    // no backup (lost or never made): at least take the module off this microphone
+                    using var bare = OpenValues($@"{CaptureRoot}\{id}\FxProperties");
+                    if (bare != null && StripModule(bare)) output.Add(T("Restored: {0}", id));
+                    continue;
+                }
                 var b = JsonNode.Parse(File.ReadAllText(file))!.AsObject();
                 using (var fx = OpenValues($@"{CaptureRoot}\{id}\FxProperties"))
                 {
@@ -263,19 +276,54 @@ static class MicSetup
         };
     }
 
+    /// <summary>Removes the module from a microphone's effect lists. Returns true if it was there.</summary>
+    static bool StripModule(RegistryKey fx)
+    {
+        bool changed = false;
+        if (fx.GetValue(KeyEfxComposite) is string[] list && list.Contains(ApoClsid, StringComparer.OrdinalIgnoreCase))
+        {
+            var rest = list.Where(c => !c.Equals(ApoClsid, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (rest.Length > 0) fx.SetValue(KeyEfxComposite, rest, RegistryValueKind.MultiString);
+            else fx.DeleteValue(KeyEfxComposite, false);
+            changed = true;
+        }
+        if (ApoClsid.Equals(fx.GetValue(KeyEfxLegacy) as string, StringComparison.OrdinalIgnoreCase))
+        {
+            fx.DeleteValue(KeyEfxLegacy, false);
+            changed = true;
+        }
+        return changed;
+    }
+
+    /// <summary>A saved value with the module taken out (when the backup is made after the module was added).</summary>
+    static JsonNode? WithoutModule(JsonNode? saved)
+    {
+        if (saved is not JsonObject o) return saved;
+        var v = o["Value"];
+        if (v is JsonArray a)
+        {
+            var rest = a.Select(x => x?.GetValue<string>()).Where(s => s != null && !s.Equals(ApoClsid, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (rest.Count == 0) return null; // the value did not exist before the module
+            return new JsonObject { ["Kind"] = o["Kind"]!.GetValue<string>(), ["Value"] = new JsonArray(rest.Select(s => (JsonNode?)JsonValue.Create(s)).ToArray()) };
+        }
+        if (v is JsonValue sv && sv.TryGetValue<string>(out var s1) && s1.Equals(ApoClsid, StringComparison.OrdinalIgnoreCase)) return null;
+        return saved;
+    }
+
     /// <summary>Backup of the original values, taken once (compatible with the PowerShell scripts).</summary>
     static JsonObject LoadOrCreateBackup(string id, RegistryKey fx, RegistryKey props)
     {
         string file = Path.Combine(BackupDir, id + ".json");
         if (File.Exists(file)) return JsonNode.Parse(File.ReadAllText(file))!.AsObject();
+        // a backup taken while the module is already on the mic (its backup was lost) must not keep it
         var b = new JsonObject
         {
             ["Id"] = id,
             ["Composite"] = Saved(fx, KeySfxComposite),
             ["Legacy"] = Saved(fx, KeySfxLegacy),
             ["Modes"] = Saved(fx, KeySfxModes),
-            ["EfxComposite"] = Saved(fx, KeyEfxComposite),
-            ["EfxLegacy"] = Saved(fx, KeyEfxLegacy),
+            ["EfxComposite"] = WithoutModule(Saved(fx, KeyEfxComposite)),
+            ["EfxLegacy"] = WithoutModule(Saved(fx, KeyEfxLegacy)),
             ["EfxModes"] = Saved(fx, KeyEfxModes),
             ["SysFx"] = Saved(props, KeyDisableSysFx),
         };
